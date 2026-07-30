@@ -1,0 +1,10 @@
+# Git
+.git
+.gitignore
+
+# IDEs e SO
+.vscode/
+
+# Binarios e EXE
+bin/
+# server
