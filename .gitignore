@@ -1,0 +1,12 @@
+# Binarios e EXE
+bin/
+# server
+
+# IDEs e SO
+.vscode/
+.idea/
+.DS_Store
+
+# Dependencia Go
+vendor/
+go.work
