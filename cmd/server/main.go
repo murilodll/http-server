@@ -12,14 +12,40 @@ import (
 	"context"
 	
 	"http-server-projeto-korp/internal/handler"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 )
+
+var (
+
+	httpRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "Total de Requisições HTTP Recebidas",
+		},
+		[]string{"path"},
+	)
+
+)
+
+func countRequests(path string, next func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
+	
+	return func(w http.ResponseWriter, r *http.Request) {
+		httpRequestsTotal.WithLabelValues(path).Inc()
+		next(w, r)
+	}
+
+}
+
 
 func main() {
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/projeto-korp", handler.ProjetoKorpHandler)
-	mux.HandleFunc("/health", handler.HealthCheckHandler)
+	mux.HandleFunc("/projeto-korp", countRequests("/projeto-korp", handler.ProjetoKorpHandler))
+	mux.HandleFunc("/health", countRequests("/health", handler.HealthCheckHandler))
+	mux.Handle("/metrics", promhttp.Handler())
 
 	server := &http.Server{
 		Addr:    ":8080",
