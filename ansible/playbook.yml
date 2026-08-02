@@ -1,0 +1,118 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    project_dir: "/opt/projeto-korp"
+    repo_url: "https://github.com/murilodll/http-server.git"
+
+  tasks:
+    - name: 1. Atualizar e instalar dependências do sistema
+      apt:
+        update_cache: yes
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - git
+        state: present
+    
+    - name: 2. Adicionar chave GPG do Docker
+      shell: |
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        chmod a+r /etc/apt/keyrings/docker.gpg
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+      register: gpg_result
+      retries: 3
+      delay: 5
+      until: gpg_result.rc == 0
+
+    - name: 3. Adicionar repositório do Docker
+      shell: |
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+
+    - name: 4. Instalar Docker Engine e Docker Compose
+      apt:
+        update_cache: yes
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: 5. Testar Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+    
+    - name: 6. Clonar o repositório do projeto
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ project_dir }}"
+        version: develop
+        force: yes
+
+    - name: 7. Construir e iniciar os serviços com Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ project_dir }}"
+        state: present
+        build: yes
+
+    - name: 8. Aguardar a inicialização dos serviço HTTP responder Healthy
+      uri:
+        url: "http://localhost/health"
+        method: GET
+        status_code: 200
+      register: health_result
+      retries: 5
+      delay: 3
+
+    - name: 9. Aguardar a inicialização do Prometheus responder Healthy
+      uri:
+        url: "http://localhost:9090/-/healthy"
+        method: GET
+        status_code: 200
+      register: prometheus_health_result
+      retries: 5
+      delay: 3
+
+    - name: 10. Aguardar a inicialização do Grafana responder Healthy
+      uri:
+        url: "http://localhost:3000/api/health"
+        method: GET
+        status_code: 200
+      register: grafana_health_result
+      retries: 5
+      delay: 3
+    
+    - name: 11. Exibir resultados dos testes de saúde
+      debug:
+        msg:
+          - "HTTP Server Health Check: {{ health_result.status }}"
+          - "Prometheus Health Check: {{ prometheus_health_result.status }}"
+          - "Grafana Health Check: {{ grafana_health_result.status }}"
+    
+    - name: 12. Exibir instruções de acesso
+      debug:
+        msg:
+          - "Acesse o Grafana em http://localhost:3000"
+          - "Usuário padrão: admin"
+          - "Senha padrão: admin"
+
+    - name: 13. Executar requisição de teste para o servidor HTTP
+      uri:
+        url: "http://localhost/projeto-korp"
+        method: GET
+        status_code: 200
+        return_content: yes
+      register: api_response
+
+    - name: 14. Exibir resposta da requisição de teste
+      debug:
+        msg: "Resposta da API: {{ api_response.content }}"
