@@ -95,8 +95,8 @@
     "list": []
   },
   "time": {
-    "from": "2026-07-31T02:36:42.416Z",
-    "to": "2026-07-31T02:41:42.416Z"
+    "from": "now-5m",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
