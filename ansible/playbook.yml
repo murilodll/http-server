@@ -58,14 +58,6 @@
         version: test/ansible-ajustes
         force: yes
 
-
-    - name: 6.5. Permissoes para o Grafana ler os dashboards
-      file:
-        path: "{{ project_dir }}"
-        mode: '0755'
-        recurse: yes
-
-
     - name: 7. Construir e iniciar os serviços com Docker Compose
       shell: docker compose up -d --build
       args:
