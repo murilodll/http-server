@@ -55,14 +55,23 @@
       git:
         repo: "{{ repo_url }}"
         dest: "{{ project_dir }}"
-        version: develop
+        version: test/ansible-ajustes
         force: yes
 
+
+    - name: 6.5. Permissoes para o Grafana ler os dashboards
+      file:
+        path: "{{ project_dir }}"
+        mode: '0755'
+        recurse: yes
+
+
     - name: 7. Construir e iniciar os serviços com Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ project_dir }}"
-        state: present
-        build: yes
+      shell: docker compose up -d --build
+      args:
+        chdir: "{{ project_dir }}"
+      environment:
+        DOCKER_BUILDKIT: 0
 
     - name: 8. Aguardar a inicialização dos serviço HTTP responder Healthy
       uri:
@@ -88,8 +97,9 @@
         method: GET
         status_code: 200
       register: grafana_health_result
-      retries: 5
-      delay: 3
+      until: grafana_health_result.status == 200
+      retries: 12
+      delay: 5
     
     - name: 11. Exibir resultados dos testes de saúde
       debug:
@@ -101,7 +111,7 @@
     - name: 12. Exibir instruções de acesso
       debug:
         msg:
-          - "Acesse o Grafana em http://localhost:3000"
+          - "Acesse o Grafana em http://{{ inventory_hostname }}:3000"
           - "Usuário padrão: admin"
           - "Senha padrão: admin"
 
