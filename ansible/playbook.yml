@@ -55,7 +55,7 @@
       git:
         repo: "{{ repo_url }}"
         dest: "{{ project_dir }}"
-        version: test/ansible-ajustes
+        version: main
         force: yes
 
     - name: 7. Construir e iniciar os serviços com Docker Compose
