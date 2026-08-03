@@ -50,13 +50,11 @@ services:
     container_name: grafana
     restart: unless-stopped
     volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     networks:
       - korp-network
-    environment:
-      - GF_SERVER_ROOT_URL=http://localhost/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
     depends_on:
       prometheus:
         condition: service_healthy
