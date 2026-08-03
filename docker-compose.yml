@@ -49,8 +49,11 @@ services:
     image: grafana/grafana:11.1.0
     container_name: grafana
     restart: unless-stopped
+    environment:
+      - GF_SERVER_PROTOCOL=http
+      - GF_SERVER_ROOT_URL=http://${SERVER_IP}/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
     volumes:
-      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     networks:
