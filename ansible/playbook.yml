@@ -76,7 +76,7 @@
 
     - name: 9. Aguardar a inicialização do Prometheus responder Healthy
       uri:
-        url: "http://localhost:9090/-/healthy"
+        url: "http://localhost:9090/prometheus/-/healthy"
         method: GET
         status_code: 200
       register: prometheus_health_result
@@ -85,7 +85,7 @@
 
     - name: 10. Aguardar a inicialização do Grafana responder Healthy
       uri:
-        url: "http://localhost:3000/api/health"
+        url: "http://localhost:3000/grafana/api/health"
         method: GET
         status_code: 200
       register: grafana_health_result
