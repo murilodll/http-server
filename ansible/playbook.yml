@@ -58,8 +58,14 @@
         version: main
         force: yes
 
+    - name: 6.5 Gerar arquivo .env dinamico para o Grafana
+      copy:
+        dest: /opt/projeto-korp/.env
+        content: |
+          SERVER_IP={{ ansible_host | default(ansible_default_ipv4.address) }}
+
     - name: 7. Construir e iniciar os serviços com Docker Compose
-      shell: docker compose up -d --build
+      shell: docker compose up -d --build --force-recreate
       args:
         chdir: "{{ project_dir }}"
       environment:
@@ -76,7 +82,7 @@
 
     - name: 9. Aguardar a inicialização do Prometheus responder Healthy
       uri:
-        url: "http://localhost:9090/-/healthy"
+        url: "http://localhost/prometheus/-/healthy"
         method: GET
         status_code: 200
       register: prometheus_health_result
@@ -85,7 +91,7 @@
 
     - name: 10. Aguardar a inicialização do Grafana responder Healthy
       uri:
-        url: "http://localhost:3000/api/health"
+        url: "http://localhost/grafana/api/health"
         method: GET
         status_code: 200
       register: grafana_health_result
@@ -103,7 +109,7 @@
     - name: 12. Exibir instruções de acesso
       debug:
         msg:
-          - "Acesse o Grafana em http://{{ inventory_hostname }}:3000"
+          - "Acesse o Grafana em http://{{ inventory_hostname }}/grafana"
           - "Usuário padrão: admin"
           - "Senha padrão: admin"
 
