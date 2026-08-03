@@ -60,9 +60,9 @@
 
     - name: 6.5 Gerar arquivo .env dinamico para o Grafana
       copy:
-      dest: /opt/projeto-korp/.env
-      content: |
-        SERVER_IP={{ ansible_host | default(ansible_default_ipv4.address) }}
+        dest: /opt/projeto-korp/.env
+        content: |
+          SERVER_IP={{ ansible_host | default(ansible_default_ipv4.address) }}
 
     - name: 7. Construir e iniciar os serviços com Docker Compose
       shell: docker compose up -d --build --force-recreate
