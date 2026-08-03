@@ -55,7 +55,7 @@
       git:
         repo: "{{ repo_url }}"
         dest: "{{ project_dir }}"
-        version: develop
+        version: main
         force: yes
 
     - name: 6.5 Gerar arquivo .env dinamico para o Grafana
